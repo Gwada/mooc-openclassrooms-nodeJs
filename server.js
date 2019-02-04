@@ -1,9 +1,8 @@
 const http = require('http');
-const server = http.createServer(
-    (req, res) => {
-        res.writeHead(200);
-        res.end('Hello world !');
-    }
-);
+const visitedAction = (req, res) => {
+    res.writeHead(200);
+    res.end('Hello world !');
+};
+const server = http.createServer(visitedAction);
 
 server.listen(8080);
