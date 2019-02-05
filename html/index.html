@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="/css/style.css">
+		<title>Todolist</title>
+	</head>
+
+	<body>
+		<h1>Todolist en temps réels</h1>
+
+		<ul id='todo'></ul>
+
+		<form id='new-todo'>
+			<p>
+				<input type="text" name="todo" id="todo" required />
+			</p>
+			<p>
+				<input type="submit" value="submit" />
+				<input type="reset" value="reset" />
+			</p>
+		</form>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/js/script.js"></script>
+	</body>
+</html>

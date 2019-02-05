@@ -5,47 +5,55 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: dlavaury <dlavaury@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/04 22:04:10 by dlavaury          #+#    #+#             */
-/*   Updated: 2019/02/05 23:19:27 by dlavaury         ###   ########.fr       */
+/*   Created: 2019/02/05 23:46:13 by dlavaury          #+#    #+#             */
+/*   Updated: 2019/02/06 00:25:27 by dlavaury         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-const app = require('express')();
-const server = require('http').createServer(app);
-const io = require('socket.io').listen(server);
-/* Permet de bloquer les caractères HTML
-(sécurité équivalente à htmlentities en PHP) */
-const ent = require('ent');
+const express	= require('express');
+const ent		= require('ent');
+const app		= express();
+const server	= require('http').createServer(app);
+const io		= require('socket.io').listen(server);
+const todolist	= ['test', 'test1'];
+let id			= 0;
 
-// Chargement de la page index.html
-app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
+app.get('/', (req, res) => res.sendFile(__dirname + '/html/index.html'))
+.get('/css/style.css', (req, res) => res.sendFile(__dirname + '/css/style.css'))
+.get('/js/script.js', (req, res) => res.sendFile(__dirname + '/js/script.js'))
+.use((req, res, next) => res.redirect('/'));
 
-io.sockets.on('connection', (socket, pseudo) => {
-    /* Dès qu'on nous donne un pseudo,
-    on le stocke en variable de session
-    et on informe les autres personnes */
-    socket.on('nouveau_client', pseudo => {
-        pseudo = ent.encode(pseudo);
+// quand un client ce connecte
+io.sockets.on('connection', socket => {
+	socket.name	= ++id;
 
-        socket.pseudo = pseudo;
-        socket.broadcast.emit('nouveau_client', pseudo);
-    });
+	console.log(`new client :  ${socket.name}`);
 
-    /* Dès qu'on reçoit un message,
-    on récupère le pseudo de son auteur
-    et on le transmet aux autres personnes */
-    socket.on('message', message => {
-        message = ent.encode(message);
+	// send the current todolist to the client
+	socket.emit('current', JSON.stringify(todolist));
+	// when a client want to remove a todo element
+	socket.on('del', key => {
+		// chaque element est identifie par une key : son contenue
+		index	= todolist.indexOf(key);
+		if (index !== -1)
+		{
+			console.log(`client ${socket.name} remove : ${key}`);
+			// remove the element
+			todolist.splice(index, 1);
+			// send new list to all other client
+			socket.broadcast.emit('current', JSON.stringify(todolist));
+		}
+	})
+	// when a client want to add a element
+	.on('add', element => {
+		element	= ent.encode(element); // protect form script injection
 
-        socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
-    });
+		console.log(`client ${socket.name} add ${element}`);
 
-    socket.on('disconnect', () => {
-        const login = socket.pseudo !== undefined ? socket.pseudo : 'Un utilisateur';
-
-        socket.broadcast.emit('message', {pseudo: socket.pseudo, message: 'a quitté le chat'});
-    });
+		// add the new element
+		todolist.push(element);
+		// send notif to all other client
+		socket.broadcast.emit('add', element);
+	});
 });
-
-
 server.listen(8080);

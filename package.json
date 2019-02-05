@@ -1,5 +1,5 @@
 {
-    "name": "socket.io_chat_temps_reel",
+    "name": "activity_1_todo_list_temps_reel",
     "version": "0.1.0",
     "dependencies": {
         "express": "^4.16.4",
@@ -7,5 +7,5 @@
         "ent": "~0.1.0"
     },
     "author": "dlavaury <dlavaury@student.42.fr>",
-    "description": "initiation socket.io chat temps réel"
+    "description": "activité 1 mooc openclassrooms todo list temps réel"
 }
