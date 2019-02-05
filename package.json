@@ -1,11 +1,11 @@
 {
-    "name": "socket.io",
+    "name": "socket.io_chat_temps_reel",
     "version": "0.1.0",
     "dependencies": {
         "express": "^4.16.4",
         "socket.io": "^2.2.0",
-        "twig": "^1.13.2"
+        "ent": "~0.1.0"
     },
     "author": "dlavaury <dlavaury@student.42.fr>",
-    "description": "initiation socket.io"
+    "description": "initiation socket.io chat temps réel"
 }

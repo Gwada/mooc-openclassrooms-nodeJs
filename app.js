@@ -6,51 +6,46 @@
 /*   By: dlavaury <dlavaury@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/02/04 22:04:10 by dlavaury          #+#    #+#             */
-/*   Updated: 2019/02/04 22:59:42 by dlavaury         ###   ########.fr       */
+/*   Updated: 2019/02/05 23:19:27 by dlavaury         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-const express = require('express');
-const session = require('cookie-session'); // Charge le middleware de sessions
-const bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
-const urlencodedParser = bodyParser.urlencoded({ extended: false });
-const app = express();
+const app = require('express')();
+const server = require('http').createServer(app);
+const io = require('socket.io').listen(server);
+/* Permet de bloquer les caractères HTML
+(sécurité équivalente à htmlentities en PHP) */
+const ent = require('ent');
 
-/* On utilise les sessions */
-app.use(session({secret: 'todotopsecret'}))
+// Chargement de la page index.html
+app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
-/* S'il n'y a pas de todolist dans la session,
-on en crée une vide sous forme d'array avant la suite */
-.use((req, res, next) => {
-    if (typeof(req.session.todolist) == 'undefined') {
-        req.session.todolist = [];
-    }
-    next();
-})
+io.sockets.on('connection', (socket, pseudo) => {
+    /* Dès qu'on nous donne un pseudo,
+    on le stocke en variable de session
+    et on informe les autres personnes */
+    socket.on('nouveau_client', pseudo => {
+        pseudo = ent.encode(pseudo);
 
-/* On affiche la todolist et le formulaire */
-.get('/todo', (req, res) => { 
-    res.render('todo.twig', {todolist: req.session.todolist});
-})
+        socket.pseudo = pseudo;
+        socket.broadcast.emit('nouveau_client', pseudo);
+    });
 
-/* On ajoute un élément à la todolist */
-.post('/todo/ajouter/', urlencodedParser, (req, res) => {
-    if (req.body.newtodo != '') {
-        req.session.todolist.push(req.body.newtodo);
-    }
-    res.redirect('/todo');
-})
+    /* Dès qu'on reçoit un message,
+    on récupère le pseudo de son auteur
+    et on le transmet aux autres personnes */
+    socket.on('message', message => {
+        message = ent.encode(message);
 
-/* Supprime un élément de la todolist */
-.get('/todo/supprimer/:id', (req, res) => {
-    if (req.params.id != '') {
-        req.session.todolist.splice(req.params.id, 1);
-    }
-    res.redirect('/todo');
-})
+        socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
+    });
 
-/* On redirige vers la todolist si la page demandée n'est pas trouvée */
-.use((req, res, next) => res.redirect('/todo')
-)
+    socket.on('disconnect', () => {
+        const login = socket.pseudo !== undefined ? socket.pseudo : 'Un utilisateur';
 
-.listen(8080);
+        socket.broadcast.emit('message', {pseudo: socket.pseudo, message: 'a quitté le chat'});
+    });
+});
+
+
+server.listen(8080);
