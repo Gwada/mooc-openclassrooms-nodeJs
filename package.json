@@ -2,8 +2,8 @@
     "name": "activity_1_todo_list_temps_reel",
     "version": "0.1.0",
     "dependencies": {
-        "express": "^4.16.4",
-        "socket.io": "^2.2.0",
+        "express": "~4.16.4",
+        "socket.io": "~2.2.0",
         "ent": "~0.1.0"
     },
     "author": "dlavaury <dlavaury@student.42.fr>",
